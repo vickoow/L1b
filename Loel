@@ -801,8 +801,9 @@ end
             }
         end
 
+        --Dropdown
 
-        function tabAPI:AddDropdown(opt)
+function tabAPI:AddDropdown(opt)
     opt = opt or {}
 
     local name = opt.Name or "Dropdown"
@@ -810,7 +811,7 @@ end
     local callback = opt.Callback or function() end
     local flag = opt.Flag or HttpService:GenerateGUID(false)
 
-    -- DEFAULT DINÂMICO (NÃO TRAVA EM "None")
+    -- DEFAULT DINÂMICO
     local default = opt.Default or options[1]
     ElixirLib.Flags[flag] = default
 
@@ -912,10 +913,10 @@ end
 
         local visibleCount = math.min(#options, 5)
         TweenService:Create(scrollFrame, TweenInfo.new(.15), {
-            Size = UDim2.new(1,0,0,visibleCount * 26)
+            Size = UDim2.new(1,0,0,visibleCount*26)
         }):Play()
         TweenService:Create(dropdownFrame, TweenInfo.new(.15), {
-            Size = UDim2.new(1,-12,0,(visibleCount * 26) + 4)
+            Size = UDim2.new(1,-12,0,(visibleCount*26)+4)
         }):Play()
     end
 
@@ -923,12 +924,14 @@ end
     -- REBUILD OPTIONS (CORE)
     -------------------------------------------------
     local function rebuildOptions()
+        -- Limpa botões antigos
         for _, v in pairs(scrollFrame:GetChildren()) do
             if v:IsA("TextButton") then
                 v:Destroy()
             end
         end
 
+        -- Cria novos
         for _, optVal in ipairs(options) do
             local btn = new("TextButton", {
                 Parent = scrollFrame,
@@ -965,11 +968,9 @@ end
             end)
         end
 
-        task.wait()
-        scrollFrame.CanvasSize = UDim2.new(0,0,0,(#options * 26) + 8)
+        scrollFrame.CanvasSize = UDim2.new(0,0,0,(#options*26)+8)
     end
 
-    -- INIT
     rebuildOptions()
     scrollFrame.Visible = false
 
@@ -1001,6 +1002,7 @@ end
             options = newOptions or {}
             rebuildOptions()
 
+            -- Atualiza texto e flag
             if #options > 0 then
                 ElixirLib.Flags[flag] = options[1]
                 currentText.Text = tostring(options[1])
@@ -1009,6 +1011,29 @@ end
                 currentText.Text = "Empty"
             end
 
+            closeList()
+        end,
+
+        AddOption = function(val)
+            table.insert(options, val)
+            rebuildOptions()
+        end,
+
+        RemoveOption = function(val)
+            for i,optVal in ipairs(options) do
+                if optVal == val then
+                    table.remove(options,i)
+                    break
+                end
+            end
+            rebuildOptions()
+        end,
+
+        Clear = function()
+            options = {}
+            rebuildOptions()
+            currentText.Text = "Empty"
+            ElixirLib.Flags[flag] = nil
             closeList()
         end,
 
@@ -1024,7 +1049,6 @@ end
         Flag = flag
     }
 end
-
         
         
         
