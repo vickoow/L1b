@@ -1002,7 +1002,6 @@ function tabAPI:AddDropdown(opt)
             options = newOptions or {}
             rebuildOptions()
 
-            -- Atualiza texto e flag
             if #options > 0 then
                 ElixirLib.Flags[flag] = options[1]
                 currentText.Text = tostring(options[1])
@@ -1046,7 +1045,12 @@ function tabAPI:AddDropdown(opt)
             return ElixirLib.Flags[flag]
         end,
 
-        Flag = flag
+        Flag = flag,
+
+        -- ✨ NOVO: RefreshOptions
+        RefreshOptions = function()
+            rebuildOptions()
+        end
     }
 end
         
