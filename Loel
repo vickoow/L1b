@@ -1256,6 +1256,130 @@ function tabAPI:AddButton(opt)
     }
 end
 
+--colorpicker 
+
+
+function CombatTab:AddColorpicker(options)
+	options = options or {}
+
+	local Name = options.Name or "Colorpicker"
+	local Default = options.Default or Color3.fromRGB(255,255,255)
+	local Callback = options.Callback or function() end
+
+	local TweenService = game:GetService("TweenService")
+	local UserInputService = game:GetService("UserInputService")
+
+	-- Item base (igual Keybind)
+	local Item = Instance.new("Frame")
+	Item.Parent = self.Container
+	Item.Size = UDim2.new(1, 0, 0, 36)
+	Item.BackgroundTransparency = 1
+
+	-- Nome
+	local Title = Instance.new("TextLabel")
+	Title.Parent = Item
+	Title.Text = Name
+	Title.Font = Enum.Font.Gotham
+	Title.TextSize = 14
+	Title.TextColor3 = Color3.fromRGB(220,220,220)
+	Title.BackgroundTransparency = 1
+	Title.Size = UDim2.new(1, -40, 1, 0)
+	Title.TextXAlignment = Left
+
+	-- Caixa da cor (substitui letra do keybind)
+	local ColorButton = Instance.new("Frame")
+	ColorButton.Parent = Item
+	ColorButton.Size = UDim2.new(0, 22, 0, 22)
+	ColorButton.Position = UDim2.new(1, -26, 0.5, -11)
+	ColorButton.BackgroundColor3 = Default
+	ColorButton.BorderSizePixel = 0
+
+	local Corner = Instance.new("UICorner", ColorButton)
+	Corner.CornerRadius = UDim.new(0, 4)
+
+	-- Picker flutuante
+	local PickerFrame = Instance.new("Frame")
+	PickerFrame.Parent = Item
+	PickerFrame.Visible = false
+	PickerFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+	PickerFrame.BorderSizePixel = 0
+	PickerFrame.Position = UDim2.new(1, -170, 1, 6)
+	PickerFrame.Size = UDim2.new(0, 160, 0, 160)
+	PickerFrame.ZIndex = 50
+	PickerFrame.ClipsDescendants = true
+
+	local PickerCorner = Instance.new("UICorner", PickerFrame)
+	PickerCorner.CornerRadius = UDim.new(0, 6)
+
+	-- Imagem RGB
+	local RGBImage = Instance.new("ImageLabel")
+	RGBImage.Parent = PickerFrame
+	RGBImage.Size = UDim2.new(1, 0, 1, 0)
+	RGBImage.BackgroundTransparency = 1
+	RGBImage.Image = "93627420959117"
+	RGBImage.ZIndex = 51
+
+	-- Estado
+	local Opened = false
+	local CurrentColor = Default
+
+	-- Toggle abrir/fechar
+	local function TogglePicker()
+		Opened = not Opened
+		PickerFrame.Visible = Opened
+	end
+
+	ColorButton.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+		or input.UserInputType == Enum.UserInputType.Touch then
+			TogglePicker()
+		end
+	end)
+
+	-- Seleção da cor
+	local function UpdateColor(input)
+		local x = (input.Position.X - RGBImage.AbsolutePosition.X) / RGBImage.AbsoluteSize.X
+		local y = (input.Position.Y - RGBImage.AbsolutePosition.Y) / RGBImage.AbsoluteSize.Y
+
+		x = math.clamp(x, 0, 1)
+		y = math.clamp(y, 0, 1)
+
+		local color = Color3.fromHSV(x, 1, 1 - y)
+
+		CurrentColor = color
+		ColorButton.BackgroundColor3 = color
+		Callback(color)
+	end
+
+	RGBImage.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+		or input.UserInputType == Enum.UserInputType.Touch then
+			UpdateColor(input)
+		end
+	end)
+
+	RGBImage.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement
+		or input.UserInputType == Enum.UserInputType.Touch then
+			if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
+				UpdateColor(input)
+			end
+		end
+	end)
+
+	-- Retorno opcional
+	return {
+		Set = function(color)
+			CurrentColor = color
+			ColorButton.BackgroundColor3 = color
+			Callback(color)
+		end,
+		Get = function()
+			return CurrentColor
+		end
+	}
+end
+
 
 -- Section
 function tabAPI:AddSection(opt)
@@ -1316,18 +1440,20 @@ end
 
 
 
-       -- return tabAPI with only public methods mapped
-       local public = {
-        AddToggle = tabAPI.AddToggle,
-        AddButton = tabAPI.AddButton,
-        AddSlider = tabAPI.AddSlider,
-        AddInput = tabAPI.AddInput,
-        AddDropdown = tabAPI.AddDropdown,
-        AddBind = tabAPI.AddKeybind,
-        AddSection = tabAPI.AddSection,
-        AddTextbox = tabAPI.AddTextbox,
-        _internalId = id
-    }
+-- return tabAPI with only public methods mapped
+local public = {
+	AddToggle = tabAPI.AddToggle,
+	AddButton = tabAPI.AddButton,
+	AddSlider = tabAPI.AddSlider,
+	AddInput = tabAPI.AddInput,
+	AddDropdown = tabAPI.AddDropdown,
+	AddBind = tabAPI.AddKeybind,
+	AddSection = tabAPI.AddSection,
+	AddTextbox = tabAPI.AddTextbox,
+	AddColorpicker = tabAPI.AddColorpicker, -- 👈 AQUI
+	_internalId = id
+}
+
     
     return public
     
