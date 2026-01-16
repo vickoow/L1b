@@ -1259,7 +1259,7 @@ end
 --colorpicker 
 
 
-function CombatTab:AddColorpicker(options)
+function TabApi:AddColorpicker(options)
 	options = options or {}
 
 	local Name = options.Name or "Colorpicker"
