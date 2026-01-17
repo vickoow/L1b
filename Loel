@@ -1272,7 +1272,7 @@ function tabAPI:AddColorpicker(opt)
 
 	-- item base
 	local item = newItemFrame()
-	item.Size = UDim2.new(1, -12, 0, 30)
+	item.Size = UDim2.new(1, -12, 0, 28)
 
 	local label = new("TextLabel", {
 		Parent = item,
@@ -1282,17 +1282,17 @@ function tabAPI:AddColorpicker(opt)
 		TextColor3 = Theme.ItemText,
 		BackgroundTransparency = 1,
 		Position = UDim2.new(0, 8, 0, 0),
-		Size = UDim2.new(0.6, -8, 1, 0),
+		Size = UDim2.new(0.7, -8, 1, 0),
 		TextXAlignment = Enum.TextXAlignment.Left
 	})
 
-	-- botão preview
+	-- preview da cor (MENOR)
 	local btn = new("TextButton", {
 		Parent = item,
 		Text = "",
 		BackgroundColor3 = default,
-		Size = UDim2.new(0, 90, 0, 22),
-		Position = UDim2.new(1, -104, 0.5, -11),
+		Size = UDim2.new(0, 42, 0, 18),
+		Position = UDim2.new(1, -56, 0.5, -9),
 		BorderSizePixel = 0,
 		AutoButtonColor = false
 	})
@@ -1300,14 +1300,15 @@ function tabAPI:AddColorpicker(opt)
 
 	local stroke = Instance.new("UIStroke", btn)
 	stroke.Color = Theme.ToggleOuterUIStroke
+	stroke.Thickness = 1
 
-	-- picker flutuante
+	-- picker flutuante (MENOR)
 	local picker = new("Frame", {
 		Parent = item,
 		Visible = false,
 		BackgroundColor3 = Theme.ToggleOuter,
-		Size = UDim2.new(0, 160, 0, 160),
-		Position = UDim2.new(1, -170, 1, 6),
+		Size = UDim2.new(0, 120, 0, 120),
+		Position = UDim2.new(1, -132, 1, 6),
 		BorderSizePixel = 0,
 		ZIndex = 20,
 		ClipsDescendants = true
@@ -1317,7 +1318,7 @@ function tabAPI:AddColorpicker(opt)
 	-- imagem do mapa (QUADRADO)
 	local image = new("ImageLabel", {
 		Parent = picker,
-		Image = "rbxassetid://98986117103379", -- <<< SEU ASSET
+		Image = "rbxassetid://98986117103379", -- SEU ASSET
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 1, 0),
 		ZIndex = 21
@@ -1345,11 +1346,9 @@ function tabAPI:AddColorpicker(opt)
 		local s, v
 
 		if y < 0.5 then
-			-- branco → cor pura
 			s = y * 2
 			v = 1
 		else
-			-- cor pura → preto
 			s = 1
 			v = 1 - ((y - 0.5) * 2)
 		end
