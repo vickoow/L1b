@@ -1317,7 +1317,7 @@ function tabAPI:AddColorpicker(opt)
 	-- imagem do mapa (QUADRADO)
 	local image = new("ImageLabel", {
 		Parent = picker,
-		Image = "rbxassetid://91629078255536", -- <<< SEU ASSET
+		Image = "rbxassetid://98986117103379", -- <<< SEU ASSET
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 1, 0),
 		ZIndex = 21
