@@ -1256,10 +1256,10 @@ function tabAPI:AddButton(opt)
     }
 end
 
---colorpicker
+--colorpicker 
 
 
-        -- AddColorpicker
+-- AddColorpicker
 function tabAPI:AddColorpicker(opt)
 	opt = opt or {}
 
@@ -1286,7 +1286,7 @@ function tabAPI:AddColorpicker(opt)
 		TextXAlignment = Enum.TextXAlignment.Left
 	})
 
-	-- preview da cor (pequeno)
+	-- preview
 	local btn = new("TextButton", {
 		Parent = item,
 		Text = "",
@@ -1301,39 +1301,51 @@ function tabAPI:AddColorpicker(opt)
 	local stroke = Instance.new("UIStroke", btn)
 	stroke.Color = Theme.ToggleOuterUIStroke
 
-	-- picker (menor e pra DIREITA)
+	----------------------------------------------------------------
+	-- PICKER FORA DA UI
+	----------------------------------------------------------------
 	local picker = new("Frame", {
-		Parent = item,
+		Parent = game:GetService("CoreGui"),
 		Visible = false,
 		BackgroundColor3 = Theme.ToggleOuter,
-		Size = UDim2.new(0, 110, 0, 110),
-		Position = UDim2.new(1, 6, 0, 0), -- 👉 direita
+		Size = UDim2.new(0, 120, 0, 120),
 		BorderSizePixel = 0,
-		ZIndex = 50,
+		ZIndex = 1000,
 		ClipsDescendants = true
 	})
 	makeCorner(picker, 6)
 
-	-- mapa de cores
 	local image = new("ImageLabel", {
 		Parent = picker,
 		Image = "rbxassetid://98986117103379",
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 1, 0),
-		ZIndex = 51
+		ZIndex = 1001
 	})
 
-	-- estado
+	----------------------------------------------------------------
 	local opened = false
-	local dragging = false
 
 	btn.MouseButton1Click:Connect(function()
 		opened = not opened
 		picker.Visible = opened
 		stroke.Color = opened and Theme.ItemUIStrokeSelected or Theme.ToggleOuterUIStroke
+
+		if opened then
+			local pos = btn.AbsolutePosition
+			local size = btn.AbsoluteSize
+
+			-- 👉 abre totalmente fora da UI, à direita
+			picker.Position = UDim2.fromOffset(
+				pos.X + size.X + 8,
+				pos.Y
+			)
+		end
 	end)
 
-	-- conversão fiel ao mapa
+	----------------------------------------------------------------
+	-- COR (PC + MOBILE)
+	----------------------------------------------------------------
 	local function applyColor(pos)
 		local x = (pos.X - image.AbsolutePosition.X) / image.AbsoluteSize.X
 		local y = (pos.Y - image.AbsolutePosition.Y) / image.AbsoluteSize.Y
@@ -1360,37 +1372,22 @@ function tabAPI:AddColorpicker(opt)
 	end
 
 	-- PC
-	image.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			dragging = true
-			applyColor(input.Position)
+	image.InputBegan:Connect(function(i)
+		if i.UserInputType == Enum.UserInputType.MouseButton1 then
+			applyColor(i.Position)
 		end
 	end)
 
-	image.InputChanged:Connect(function(input)
-		if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-			applyColor(input.Position)
-		end
-	end)
-
-	image.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1 then
-			dragging = false
+	image.InputChanged:Connect(function(i)
+		if i.UserInputType == Enum.UserInputType.MouseMovement
+			and game:GetService("UserInputService"):IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
+			applyColor(i.Position)
 		end
 	end)
 
 	-- MOBILE
-	image.TouchTap:Connect(function(touchPos)
-		applyColor(touchPos)
-	end)
-
-	image.TouchMoved:Connect(function(touchPos)
-		applyColor(touchPos)
-	end)
-
-	image.TouchEnded:Connect(function()
-		dragging = false
-	end)
+	image.TouchTap:Connect(applyColor)
+	image.TouchMoved:Connect(applyColor)
 
 	return {
 		Get = function()
@@ -1407,8 +1404,9 @@ function tabAPI:AddColorpicker(opt)
 	}
 end
 
-        
-        
+
+
+
 -- Section
 function tabAPI:AddSection(opt)
     opt = opt or {}
