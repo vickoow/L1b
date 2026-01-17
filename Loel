@@ -1256,10 +1256,10 @@ function tabAPI:AddButton(opt)
     }
 end
 
---colorpicker 
+--colorpicker
 
 
--- AddColorpicker
+        -- AddColorpicker
 function tabAPI:AddColorpicker(opt)
 	opt = opt or {}
 
@@ -1286,13 +1286,13 @@ function tabAPI:AddColorpicker(opt)
 		TextXAlignment = Enum.TextXAlignment.Left
 	})
 
-	-- preview da cor (MENOR)
+	-- preview da cor (pequeno)
 	local btn = new("TextButton", {
 		Parent = item,
 		Text = "",
 		BackgroundColor3 = default,
-		Size = UDim2.new(0, 42, 0, 18),
-		Position = UDim2.new(1, -56, 0.5, -9),
+		Size = UDim2.new(0, 40, 0, 18),
+		Position = UDim2.new(1, -52, 0.5, -9),
 		BorderSizePixel = 0,
 		AutoButtonColor = false
 	})
@@ -1300,28 +1300,27 @@ function tabAPI:AddColorpicker(opt)
 
 	local stroke = Instance.new("UIStroke", btn)
 	stroke.Color = Theme.ToggleOuterUIStroke
-	stroke.Thickness = 1
 
-	-- picker flutuante (MENOR)
+	-- picker (menor e pra DIREITA)
 	local picker = new("Frame", {
 		Parent = item,
 		Visible = false,
 		BackgroundColor3 = Theme.ToggleOuter,
-		Size = UDim2.new(0, 120, 0, 120),
-		Position = UDim2.new(1, -132, 1, 6),
+		Size = UDim2.new(0, 110, 0, 110),
+		Position = UDim2.new(1, 6, 0, 0), -- 👉 direita
 		BorderSizePixel = 0,
-		ZIndex = 20,
+		ZIndex = 50,
 		ClipsDescendants = true
 	})
 	makeCorner(picker, 6)
 
-	-- imagem do mapa (QUADRADO)
+	-- mapa de cores
 	local image = new("ImageLabel", {
 		Parent = picker,
-		Image = "rbxassetid://98986117103379", -- SEU ASSET
+		Image = "rbxassetid://98986117103379",
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 1, 0),
-		ZIndex = 21
+		ZIndex = 51
 	})
 
 	-- estado
@@ -1334,10 +1333,10 @@ function tabAPI:AddColorpicker(opt)
 		stroke.Color = opened and Theme.ItemUIStrokeSelected or Theme.ToggleOuterUIStroke
 	end)
 
-	-- conversão FIEL ao mapa
-	local function setColor(input)
-		local x = (input.Position.X - image.AbsolutePosition.X) / image.AbsoluteSize.X
-		local y = (input.Position.Y - image.AbsolutePosition.Y) / image.AbsoluteSize.Y
+	-- conversão fiel ao mapa
+	local function applyColor(pos)
+		local x = (pos.X - image.AbsolutePosition.X) / image.AbsoluteSize.X
+		local y = (pos.Y - image.AbsolutePosition.Y) / image.AbsoluteSize.Y
 
 		x = math.clamp(x, 0, 1)
 		y = math.clamp(y, 0, 1)
@@ -1360,10 +1359,17 @@ function tabAPI:AddColorpicker(opt)
 		callback(color)
 	end
 
+	-- PC
 	image.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
 			dragging = true
-			setColor(input)
+			applyColor(input.Position)
+		end
+	end)
+
+	image.InputChanged:Connect(function(input)
+		if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+			applyColor(input.Position)
 		end
 	end)
 
@@ -1373,10 +1379,17 @@ function tabAPI:AddColorpicker(opt)
 		end
 	end)
 
-	image.InputChanged:Connect(function(input)
-		if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-			setColor(input)
-		end
+	-- MOBILE
+	image.TouchTap:Connect(function(touchPos)
+		applyColor(touchPos)
+	end)
+
+	image.TouchMoved:Connect(function(touchPos)
+		applyColor(touchPos)
+	end)
+
+	image.TouchEnded:Connect(function()
+		dragging = false
 	end)
 
 	return {
@@ -1394,8 +1407,8 @@ function tabAPI:AddColorpicker(opt)
 	}
 end
 
-
-
+        
+        
 -- Section
 function tabAPI:AddSection(opt)
     opt = opt or {}
