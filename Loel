@@ -1316,7 +1316,7 @@ function tabAPI:AddColorpicker(opt)
 
 	local image = new("ImageLabel", {
 		Parent = picker,
-		Image = "93627420959117", -- <<< SEU ASSET
+		Image = "91629078255536", -- <<< SEU ASSET
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 1, 0),
 		ZIndex = 21
