@@ -1270,7 +1270,7 @@ function tabAPI:AddColorpicker(opt)
 
 	ElixirLib.Flags[flag] = default
 
-	-- item base (igual keybind)
+	-- item base
 	local item = newItemFrame()
 	item.Size = UDim2.new(1, -12, 0, 30)
 
@@ -1286,7 +1286,7 @@ function tabAPI:AddColorpicker(opt)
 		TextXAlignment = Enum.TextXAlignment.Left
 	})
 
-	-- botão (igual keybind, mas sem texto)
+	-- botão preview
 	local btn = new("TextButton", {
 		Parent = item,
 		Text = "",
@@ -1314,9 +1314,10 @@ function tabAPI:AddColorpicker(opt)
 	})
 	makeCorner(picker, 6)
 
+	-- imagem do mapa (QUADRADO)
 	local image = new("ImageLabel", {
 		Parent = picker,
-		Image = "91629078255536", -- <<< SEU ASSET
+		Image = "rbxassetid://91629078255536", -- <<< SEU ASSET
 		BackgroundTransparency = 1,
 		Size = UDim2.new(1, 0, 1, 0),
 		ZIndex = 21
@@ -1324,6 +1325,7 @@ function tabAPI:AddColorpicker(opt)
 
 	-- estado
 	local opened = false
+	local dragging = false
 
 	btn.MouseButton1Click:Connect(function()
 		opened = not opened
@@ -1331,7 +1333,7 @@ function tabAPI:AddColorpicker(opt)
 		stroke.Color = opened and Theme.ItemUIStrokeSelected or Theme.ToggleOuterUIStroke
 	end)
 
-	-- selecionar cor
+	-- conversão FIEL ao mapa
 	local function setColor(input)
 		local x = (input.Position.X - image.AbsolutePosition.X) / image.AbsoluteSize.X
 		local y = (input.Position.Y - image.AbsolutePosition.Y) / image.AbsoluteSize.Y
@@ -1339,7 +1341,20 @@ function tabAPI:AddColorpicker(opt)
 		x = math.clamp(x, 0, 1)
 		y = math.clamp(y, 0, 1)
 
-		local color = Color3.fromHSV(x, 1, 1 - y)
+		local h = x
+		local s, v
+
+		if y < 0.5 then
+			-- branco → cor pura
+			s = y * 2
+			v = 1
+		else
+			-- cor pura → preto
+			s = 1
+			v = 1 - ((y - 0.5) * 2)
+		end
+
+		local color = Color3.fromHSV(h, s, v)
 
 		ElixirLib.Flags[flag] = color
 		btn.BackgroundColor3 = color
@@ -1348,15 +1363,20 @@ function tabAPI:AddColorpicker(opt)
 
 	image.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = true
 			setColor(input)
 		end
 	end)
 
+	image.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			dragging = false
+		end
+	end)
+
 	image.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement then
-			if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
-				setColor(input)
-			end
+		if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+			setColor(input)
 		end
 	end)
 
