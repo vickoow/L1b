@@ -1259,126 +1259,122 @@ end
 --colorpicker 
 
 
-function TabApi:AddColorpicker(options)
-	options = options or {}
+-- AddColorpicker
+function tabAPI:AddColorpicker(opt)
+	opt = opt or {}
 
-	local Name = options.Name or "Colorpicker"
-	local Default = options.Default or Color3.fromRGB(255,255,255)
-	local Callback = options.Callback or function() end
+	local name = opt.Name or "Colorpicker"
+	local default = opt.Default or Color3.fromRGB(255, 255, 255)
+	local callback = opt.Callback or function() end
+	local flag = opt.Flag or HttpService:GenerateGUID(false)
 
-	local TweenService = game:GetService("TweenService")
-	local UserInputService = game:GetService("UserInputService")
+	ElixirLib.Flags[flag] = default
 
-	-- Item base (igual Keybind)
-	local Item = Instance.new("Frame")
-	Item.Parent = self.Container
-	Item.Size = UDim2.new(1, 0, 0, 36)
-	Item.BackgroundTransparency = 1
+	-- item base (igual keybind)
+	local item = newItemFrame()
+	item.Size = UDim2.new(1, -12, 0, 30)
 
-	-- Nome
-	local Title = Instance.new("TextLabel")
-	Title.Parent = Item
-	Title.Text = Name
-	Title.Font = Enum.Font.Gotham
-	Title.TextSize = 14
-	Title.TextColor3 = Color3.fromRGB(220,220,220)
-	Title.BackgroundTransparency = 1
-	Title.Size = UDim2.new(1, -40, 1, 0)
-	Title.TextXAlignment = Left
+	local label = new("TextLabel", {
+		Parent = item,
+		Text = name,
+		Font = Enum.Font.GothamBold,
+		TextSize = 12,
+		TextColor3 = Theme.ItemText,
+		BackgroundTransparency = 1,
+		Position = UDim2.new(0, 8, 0, 0),
+		Size = UDim2.new(0.6, -8, 1, 0),
+		TextXAlignment = Enum.TextXAlignment.Left
+	})
 
-	-- Caixa da cor (substitui letra do keybind)
-	local ColorButton = Instance.new("Frame")
-	ColorButton.Parent = Item
-	ColorButton.Size = UDim2.new(0, 22, 0, 22)
-	ColorButton.Position = UDim2.new(1, -26, 0.5, -11)
-	ColorButton.BackgroundColor3 = Default
-	ColorButton.BorderSizePixel = 0
+	-- botão (igual keybind, mas sem texto)
+	local btn = new("TextButton", {
+		Parent = item,
+		Text = "",
+		BackgroundColor3 = default,
+		Size = UDim2.new(0, 90, 0, 22),
+		Position = UDim2.new(1, -104, 0.5, -11),
+		BorderSizePixel = 0,
+		AutoButtonColor = false
+	})
+	makeCorner(btn, 4)
 
-	local Corner = Instance.new("UICorner", ColorButton)
-	Corner.CornerRadius = UDim.new(0, 4)
+	local stroke = Instance.new("UIStroke", btn)
+	stroke.Color = Theme.ToggleOuterUIStroke
 
-	-- Picker flutuante
-	local PickerFrame = Instance.new("Frame")
-	PickerFrame.Parent = Item
-	PickerFrame.Visible = false
-	PickerFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
-	PickerFrame.BorderSizePixel = 0
-	PickerFrame.Position = UDim2.new(1, -170, 1, 6)
-	PickerFrame.Size = UDim2.new(0, 160, 0, 160)
-	PickerFrame.ZIndex = 50
-	PickerFrame.ClipsDescendants = true
+	-- picker flutuante
+	local picker = new("Frame", {
+		Parent = item,
+		Visible = false,
+		BackgroundColor3 = Theme.ToggleOuter,
+		Size = UDim2.new(0, 160, 0, 160),
+		Position = UDim2.new(1, -170, 1, 6),
+		BorderSizePixel = 0,
+		ZIndex = 20,
+		ClipsDescendants = true
+	})
+	makeCorner(picker, 6)
 
-	local PickerCorner = Instance.new("UICorner", PickerFrame)
-	PickerCorner.CornerRadius = UDim.new(0, 6)
+	local image = new("ImageLabel", {
+		Parent = picker,
+		Image = "93627420959117", -- <<< SEU ASSET
+		BackgroundTransparency = 1,
+		Size = UDim2.new(1, 0, 1, 0),
+		ZIndex = 21
+	})
 
-	-- Imagem RGB
-	local RGBImage = Instance.new("ImageLabel")
-	RGBImage.Parent = PickerFrame
-	RGBImage.Size = UDim2.new(1, 0, 1, 0)
-	RGBImage.BackgroundTransparency = 1
-	RGBImage.Image = "93627420959117"
-	RGBImage.ZIndex = 51
+	-- estado
+	local opened = false
 
-	-- Estado
-	local Opened = false
-	local CurrentColor = Default
-
-	-- Toggle abrir/fechar
-	local function TogglePicker()
-		Opened = not Opened
-		PickerFrame.Visible = Opened
-	end
-
-	ColorButton.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1
-		or input.UserInputType == Enum.UserInputType.Touch then
-			TogglePicker()
-		end
+	btn.MouseButton1Click:Connect(function()
+		opened = not opened
+		picker.Visible = opened
+		stroke.Color = opened and Theme.ItemUIStrokeSelected or Theme.ToggleOuterUIStroke
 	end)
 
-	-- Seleção da cor
-	local function UpdateColor(input)
-		local x = (input.Position.X - RGBImage.AbsolutePosition.X) / RGBImage.AbsoluteSize.X
-		local y = (input.Position.Y - RGBImage.AbsolutePosition.Y) / RGBImage.AbsoluteSize.Y
+	-- selecionar cor
+	local function setColor(input)
+		local x = (input.Position.X - image.AbsolutePosition.X) / image.AbsoluteSize.X
+		local y = (input.Position.Y - image.AbsolutePosition.Y) / image.AbsoluteSize.Y
 
 		x = math.clamp(x, 0, 1)
 		y = math.clamp(y, 0, 1)
 
 		local color = Color3.fromHSV(x, 1, 1 - y)
 
-		CurrentColor = color
-		ColorButton.BackgroundColor3 = color
-		Callback(color)
+		ElixirLib.Flags[flag] = color
+		btn.BackgroundColor3 = color
+		callback(color)
 	end
 
-	RGBImage.InputBegan:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1
-		or input.UserInputType == Enum.UserInputType.Touch then
-			UpdateColor(input)
+	image.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 then
+			setColor(input)
 		end
 	end)
 
-	RGBImage.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement
-		or input.UserInputType == Enum.UserInputType.Touch then
+	image.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement then
 			if UserInputService:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
-				UpdateColor(input)
+				setColor(input)
 			end
 		end
 	end)
 
-	-- Retorno opcional
 	return {
-		Set = function(color)
-			CurrentColor = color
-			ColorButton.BackgroundColor3 = color
-			Callback(color)
-		end,
 		Get = function()
-			return CurrentColor
-		end
+			return ElixirLib.Flags[flag]
+		end,
+		Set = function(c)
+			if typeof(c) == "Color3" then
+				ElixirLib.Flags[flag] = c
+				btn.BackgroundColor3 = c
+				callback(c)
+			end
+		end,
+		Flag = flag
 	}
 end
+
 
 
 -- Section
