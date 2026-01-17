@@ -1264,6 +1264,7 @@ function tabAPI:AddColorpicker(opt)
 	opt = opt or {}
 
 	local UserInputService = game:GetService("UserInputService")
+	local TweenService = game:GetService("TweenService")
 
 	local name = opt.Name or "Colorpicker"
 	local default = opt.Default or Color3.fromRGB(255, 255, 255)
@@ -1272,10 +1273,15 @@ function tabAPI:AddColorpicker(opt)
 
 	ElixirLib.Flags[flag] = default
 
-	-- item base
+	-- item base (ALTURA DINÂMICA)
 	local item = newItemFrame()
 	item.Size = UDim2.new(1, -12, 0, 28)
+	item.ClipsDescendants = true
 
+	local CLOSED_HEIGHT = 28
+	local OPEN_HEIGHT = 28 + 128 -- picker + espaçamento
+
+	-- label
 	local label = new("TextLabel", {
 		Parent = item,
 		Text = name,
@@ -1284,17 +1290,17 @@ function tabAPI:AddColorpicker(opt)
 		TextColor3 = Theme.ItemText,
 		BackgroundTransparency = 1,
 		Position = UDim2.new(0, 8, 0, 0),
-		Size = UDim2.new(0.7, -8, 1, 0),
+		Size = UDim2.new(0.7, -8, 0, 28),
 		TextXAlignment = Enum.TextXAlignment.Left
 	})
 
-	-- preview da cor
+	-- preview
 	local btn = new("TextButton", {
 		Parent = item,
 		Text = "",
 		BackgroundColor3 = default,
 		Size = UDim2.new(0, 42, 0, 18),
-		Position = UDim2.new(1, -56, 0.5, -9),
+		Position = UDim2.new(1, -56, 0, 5),
 		BorderSizePixel = 0,
 		AutoButtonColor = false
 	})
@@ -1304,36 +1310,50 @@ function tabAPI:AddColorpicker(opt)
 	stroke.Color = Theme.ToggleOuterUIStroke
 	stroke.Thickness = 1
 
-	-- picker flutuante
+	-- picker EMBUTIDO (NÃO FLUTUANTE)
 	local picker = new("Frame", {
 		Parent = item,
-		Visible = false,
 		BackgroundColor3 = Theme.ToggleOuter,
-		Size = UDim2.new(0, 120, 0, 120),
-		Position = UDim2.new(1, -132, 1, 6),
+		Size = UDim2.new(1, -12, 0, 120),
+		Position = UDim2.new(0, 6, 0, 32),
 		BorderSizePixel = 0,
-		ZIndex = 20,
-		ClipsDescendants = true
+		Visible = true
 	})
 	makeCorner(picker, 6)
 
-	-- imagem do mapa de cores (quadrado)
+	-- começa fechado (altura 0)
+	picker.Size = UDim2.new(1, -12, 0, 0)
+
+	-- mapa de cores
 	local image = new("ImageLabel", {
 		Parent = picker,
-		Image = "rbxassetid://98986117103379", -- SEU ASSET
+		Image = "rbxassetid://98986117103379",
 		BackgroundTransparency = 1,
-		Size = UDim2.new(1, 0, 1, 0),
-		ZIndex = 21
+		Size = UDim2.new(1, 0, 1, 0)
 	})
 
 	-- estado
 	local opened = false
 	local dragging = false
 
+	-- animação helper
+	local function tween(obj, props, time)
+		TweenService:Create(obj, TweenInfo.new(time, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), props):Play()
+	end
+
+	-- toggle abrir / fechar
 	btn.MouseButton1Click:Connect(function()
 		opened = not opened
-		picker.Visible = opened
-		stroke.Color = opened and Theme.ItemUIStrokeSelected or Theme.ToggleOuterUIStroke
+
+		if opened then
+			tween(item, {Size = UDim2.new(1, -12, 0, OPEN_HEIGHT)}, 0.25)
+			tween(picker, {Size = UDim2.new(1, -12, 0, 120)}, 0.25)
+			stroke.Color = Theme.ItemUIStrokeSelected
+		else
+			tween(item, {Size = UDim2.new(1, -12, 0, CLOSED_HEIGHT)}, 0.25)
+			tween(picker, {Size = UDim2.new(1, -12, 0, 0)}, 0.25)
+			stroke.Color = Theme.ToggleOuterUIStroke
+		end
 	end)
 
 	-- conversão fiel ao mapa
@@ -1362,7 +1382,7 @@ function tabAPI:AddColorpicker(opt)
 		callback(color)
 	end
 
-	-- INPUT BEGIN (PC + MOBILE)
+	-- input begin
 	image.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1
 		or input.UserInputType == Enum.UserInputType.Touch then
@@ -1371,7 +1391,7 @@ function tabAPI:AddColorpicker(opt)
 		end
 	end)
 
-	-- INPUT END
+	-- input end
 	image.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1
 		or input.UserInputType == Enum.UserInputType.Touch then
@@ -1379,7 +1399,7 @@ function tabAPI:AddColorpicker(opt)
 		end
 	end)
 
-	-- INPUT MOVE GLOBAL (necessário no mobile)
+	-- input move (global)
 	UserInputService.InputChanged:Connect(function(input)
 		if not dragging then return end
 
