@@ -1258,7 +1258,6 @@ end
 
 --colorpicker 
 
-
 -- AddColorpicker
 function tabAPI:AddColorpicker(opt)
 	opt = opt or {}
@@ -1273,13 +1272,14 @@ function tabAPI:AddColorpicker(opt)
 
 	ElixirLib.Flags[flag] = default
 
-	-- item base (ALTURA DINÂMICA)
+	-- item base
 	local item = newItemFrame()
 	item.Size = UDim2.new(1, -12, 0, 28)
 	item.ClipsDescendants = true
 
 	local CLOSED_HEIGHT = 28
-	local OPEN_HEIGHT = 28 + 128 -- picker + espaçamento
+	local PICKER_HEIGHT = 120
+	local OPEN_HEIGHT = CLOSED_HEIGHT + PICKER_HEIGHT + 4
 
 	-- label
 	local label = new("TextLabel", {
@@ -1310,19 +1310,15 @@ function tabAPI:AddColorpicker(opt)
 	stroke.Color = Theme.ToggleOuterUIStroke
 	stroke.Thickness = 1
 
-	-- picker EMBUTIDO (NÃO FLUTUANTE)
+	-- picker embutido
 	local picker = new("Frame", {
 		Parent = item,
 		BackgroundColor3 = Theme.ToggleOuter,
-		Size = UDim2.new(1, -12, 0, 120),
+		Size = UDim2.new(1, -12, 0, 0),
 		Position = UDim2.new(0, 6, 0, 32),
-		BorderSizePixel = 0,
-		Visible = true
+		BorderSizePixel = 0
 	})
 	makeCorner(picker, 6)
-
-	-- começa fechado (altura 0)
-	picker.Size = UDim2.new(1, -12, 0, 0)
 
 	-- mapa de cores
 	local image = new("ImageLabel", {
@@ -1336,25 +1332,35 @@ function tabAPI:AddColorpicker(opt)
 	local opened = false
 	local dragging = false
 
-	-- animação helper
+	-- tween helper
 	local function tween(obj, props, time)
-		TweenService:Create(obj, TweenInfo.new(time, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), props):Play()
+		TweenService:Create(
+			obj,
+			TweenInfo.new(time, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			props
+		):Play()
 	end
 
-	-- toggle abrir / fechar
-	btn.MouseButton1Click:Connect(function()
-		opened = not opened
+	-- abrir
+	local function openPicker()
+		if opened then return end
+		opened = true
+		tween(item, {Size = UDim2.new(1, -12, 0, OPEN_HEIGHT)}, 0.25)
+		tween(picker, {Size = UDim2.new(1, -12, 0, PICKER_HEIGHT)}, 0.25)
+		stroke.Color = Theme.ItemUIStrokeSelected
+	end
 
-		if opened then
-			tween(item, {Size = UDim2.new(1, -12, 0, OPEN_HEIGHT)}, 0.25)
-			tween(picker, {Size = UDim2.new(1, -12, 0, 120)}, 0.25)
-			stroke.Color = Theme.ItemUIStrokeSelected
-		else
-			tween(item, {Size = UDim2.new(1, -12, 0, CLOSED_HEIGHT)}, 0.25)
-			tween(picker, {Size = UDim2.new(1, -12, 0, 0)}, 0.25)
-			stroke.Color = Theme.ToggleOuterUIStroke
-		end
-	end)
+	-- fechar
+	local function closePicker()
+		if not opened then return end
+		opened = false
+		tween(item, {Size = UDim2.new(1, -12, 0, CLOSED_HEIGHT)}, 0.25)
+		tween(picker, {Size = UDim2.new(1, -12, 0, 0)}, 0.25)
+		stroke.Color = Theme.ToggleOuterUIStroke
+	end
+
+	-- botão preview apenas ABRE
+	btn.MouseButton1Down:Connect(openPicker)
 
 	-- conversão fiel ao mapa
 	local function setColorFromPosition(pos)
@@ -1382,30 +1388,34 @@ function tabAPI:AddColorpicker(opt)
 		callback(color)
 	end
 
-	-- input begin
+	-- input begin (PC + MOBILE)
 	image.InputBegan:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1
 		or input.UserInputType == Enum.UserInputType.Touch then
 			dragging = true
+			openPicker()
 			setColorFromPosition(input.Position)
 		end
 	end)
 
-	-- input end
-	image.InputEnded:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseButton1
-		or input.UserInputType == Enum.UserInputType.Touch then
-			dragging = false
-		end
-	end)
-
-	-- input move (global)
+	-- input move (GLOBAL)
 	UserInputService.InputChanged:Connect(function(input)
 		if not dragging then return end
 
 		if input.UserInputType == Enum.UserInputType.MouseMovement
 		or input.UserInputType == Enum.UserInputType.Touch then
 			setColorFromPosition(input.Position)
+		end
+	end)
+
+	-- input end → FECHA
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1
+		or input.UserInputType == Enum.UserInputType.Touch then
+			if dragging then
+				dragging = false
+				closePicker()
+			end
 		end
 	end)
 
