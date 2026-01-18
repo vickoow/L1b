@@ -191,7 +191,7 @@ function ElixirLib:MakeWindow(info)
         end
     end)
 
-    -- Botão flutuante
+    -- BotÃ£o flutuante
     local floatButton = Instance.new("ImageButton")
     floatButton.Name = "FloatingToggleButton"
     floatButton.Size = UDim2.new(0,40,0,40)
@@ -230,7 +230,7 @@ function ElixirLib:MakeWindow(info)
     end)
     floatButton.MouseButton1Click:Connect(toggleUI)
 
-        -- Botão de resize INVISÍVEL, mostrando apenas o asset da seta
+        -- BotÃ£o de resize INVISÃVEL, mostrando apenas o asset da seta
         local resizeButton = Instance.new("ImageButton")
         resizeButton.Name = "ResizeButton"
         resizeButton.Size = UDim2.new(0,20,0,20)
@@ -331,7 +331,7 @@ local tabContainerLine = new("Frame", {
     local tabs = {}
     local selectedTabId
 
-    -- ajuste dinâmico do layout quando redimensionar
+    -- ajuste dinÃ¢mico do layout quando redimensionar
     RunService.RenderStepped:Connect(function()
         local sizeX = main.Size.X.Offset
         local sizeY = main.Size.Y.Offset
@@ -541,109 +541,8 @@ function tabAPI:AddToggle(opt)
     }
 end
 
---botao flutuante pc e mobile ]
 
-
-local function CreateFloatButton(name, onClick)
-    local Players = game:GetService("Players")
-    local UserInputService = game:GetService("UserInputService")
-
-    local player = Players.LocalPlayer
-
-    local gui = Instance.new("ScreenGui")
-    gui.Name = name .. "_FloatButton"
-    gui.ResetOnSpawn = false
-    gui.Parent = player:WaitForChild("PlayerGui")
-
-    -- índice automático (stack)
-    local index = #FloatButtonManager.Buttons + 1
-
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0, 52, 0, 52)
-    btn.Position = UDim2.new(
-        1, FloatButtonManager.StartOffset.X,
-        1, FloatButtonManager.StartOffset.Y - ((index - 1) * FloatButtonManager.Spacing)
-    )
-    btn.BackgroundColor3 = Color3.fromRGB(120,120,120)
-    btn.Text = name
-    btn.TextScaled = true
-    btn.TextColor3 = Color3.new(1,1,1)
-    btn.Parent = gui
-
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(1,0)
-    Instance.new("UIStroke", btn).Thickness = 2
-
-    -- asset de drag (NÃO REMOVIDO)
-    local dragIcon = Instance.new("ImageButton")
-    dragIcon.Size = UDim2.new(0,18,0,18)
-    dragIcon.Position = UDim2.new(1,-20,0,2)
-    dragIcon.BackgroundTransparency = 1
-    dragIcon.Image = "rbxassetid://6031090999"
-    dragIcon.Parent = btn
-
-    -- lógica de drag
-    local dragging = false
-    local startPos, startBtnPos
-
-    dragIcon.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            startPos = input.Position
-            startBtnPos = btn.AbsolutePosition
-        end
-    end)
-
-    UserInputService.InputChanged:Connect(function(input)
-        if dragging then
-            local delta = input.Position - startPos
-            btn.Position = UDim2.fromOffset(
-                startBtnPos.X + delta.X,
-                startBtnPos.Y + delta.Y
-            )
-        end
-    end)
-
-    UserInputService.InputEnded:Connect(function()
-        dragging = false
-    end)
-
-    -- clique do botão
-    btn.MouseButton1Click:Connect(function()
-        if onClick then
-            onClick()
-        end
-    end)
-
-    -- registrar no manager
-    local entry = {Gui = gui, Button = btn}
-    table.insert(FloatButtonManager.Buttons, entry)
-
-    return {
-        Destroy = function()
-            for i, v in ipairs(FloatButtonManager.Buttons) do
-                if v == entry then
-                    table.remove(FloatButtonManager.Buttons, i)
-                    break
-                end
-            end
-
-            if gui then gui:Destroy() end
-
-            -- reorganizar os restantes
-            for i, v in ipairs(FloatButtonManager.Buttons) do
-                v.Button.Position = UDim2.new(
-                    1, FloatButtonManager.StartOffset.X,
-                    1, FloatButtonManager.StartOffset.Y - ((i - 1) * FloatButtonManager.Spacing)
-                )
-            end
-        end
-    }
-end
-
-
-
-
+        
 
         -- AddButton
         function tabAPI:AddButton(opt)
@@ -743,7 +642,7 @@ function tabAPI:AddSlider(opt)
         TextXAlignment = Enum.TextXAlignment.Right
     })
 
-    -- slider line mais abaixo, pra não sobrepor o número
+    -- slider line mais abaixo, pra nÃ£o sobrepor o nÃºmero
     local outer = new("Frame", {
         Parent = item,
         BackgroundColor3 = Theme.SliderOuter,
@@ -771,7 +670,7 @@ function tabAPI:AddSlider(opt)
     })
     makeCorner(knob, 100)
 
-    -- lógica de arraste
+    -- lÃ³gica de arraste
     local dragging = false
     local function updateFromInput(position)
         local absPos = outer.AbsolutePosition.X
@@ -911,7 +810,7 @@ function tabAPI:AddDropdown(opt)
     local callback = opt.Callback or function() end
     local flag = opt.Flag or HttpService:GenerateGUID(false)
 
-    -- DEFAULT DINÂMICO
+    -- DEFAULT DINÃ‚MICO
     local default = opt.Default or options[1]
     ElixirLib.Flags[flag] = default
 
@@ -1024,7 +923,7 @@ function tabAPI:AddDropdown(opt)
     -- REBUILD OPTIONS (CORE)
     -------------------------------------------------
     local function rebuildOptions()
-        -- Limpa botões antigos
+        -- Limpa botÃµes antigos
         for _, v in pairs(scrollFrame:GetChildren()) do
             if v:IsA("TextButton") then
                 v:Destroy()
@@ -1147,7 +1046,7 @@ function tabAPI:AddDropdown(opt)
 
         Flag = flag,
 
-        -- ✨ NOVO: RefreshOptions
+        -- âœ¨ NOVO: RefreshOptions
         RefreshOptions = function()
             rebuildOptions()
         end
@@ -1274,8 +1173,8 @@ function tabAPI:AddTextbox(opt)
         TextColor3 = Color3.fromRGB(255,255,255), -- branco
         PlaceholderColor3 = Theme.InputPlaceHolder,
         BackgroundTransparency = 0.7,
-        BackgroundColor3 = Theme.ToggleOuter, -- fundo levemente visível
-        Position = UDim2.new(0.37,2,0.15,0), -- mesmo nível do label
+        BackgroundColor3 = Theme.ToggleOuter, -- fundo levemente visÃ­vel
+        Position = UDim2.new(0.37,2,0.15,0), -- mesmo nÃ­vel do label
         Size = UDim2.new(0.6,-10,0.7,0) -- menor altura
     })
     makeCorner(textbox, 4)
@@ -1325,7 +1224,7 @@ function tabAPI:AddButton(opt)
         Font = Enum.Font.GothamBold,
         TextSize = 12,
         TextColor3 = Theme.SectionText,
-        BackgroundColor3 = Theme.SelectedTabFrame, -- cinza padrão
+        BackgroundColor3 = Theme.SelectedTabFrame, -- cinza padrÃ£o
         Size = UDim2.new(0,90,0,22),
         Position = UDim2.new(1,-104,0.5,-11),
         BorderSizePixel = 0
@@ -1459,10 +1358,10 @@ function tabAPI:AddColorpicker(opt)
 		stroke.Color = Theme.ToggleOuterUIStroke
 	end
 
-	-- botão preview apenas ABRE
+	-- botÃ£o preview apenas ABRE
 	btn.MouseButton1Down:Connect(openPicker)
 
-	-- conversão fiel ao mapa
+	-- conversÃ£o fiel ao mapa
 	local function setColorFromPosition(pos)
 		local x = (pos.X - image.AbsolutePosition.X) / image.AbsoluteSize.X
 		local y = (pos.Y - image.AbsolutePosition.Y) / image.AbsoluteSize.Y
@@ -1508,7 +1407,7 @@ function tabAPI:AddColorpicker(opt)
 		end
 	end)
 
-	-- input end → FECHA
+	-- input end â†’ FECHA
 	UserInputService.InputEnded:Connect(function(input)
 		if input.UserInputType == Enum.UserInputType.MouseButton1
 		or input.UserInputType == Enum.UserInputType.Touch then
@@ -1556,7 +1455,7 @@ function tabAPI:AddSection(opt)
         TextXAlignment = Enum.TextXAlignment.Center
     })
 
-    -- Conteúdo da Section (elementos adicionados abaixo)
+    -- ConteÃºdo da Section (elementos adicionados abaixo)
     local sectionContent = new("UIListLayout", {
         Parent = tabContent,
         SortOrder = Enum.SortOrder.LayoutOrder,
@@ -1604,7 +1503,7 @@ local public = {
 	AddBind = tabAPI.AddKeybind,
 	AddSection = tabAPI.AddSection,
 	AddTextbox = tabAPI.AddTextbox,
-	AddColorpicker = tabAPI.AddColorpicker, -- 👈 AQUI
+	AddColorpicker = tabAPI.AddColorpicker, -- ðŸ‘ˆ AQUI
 	_internalId = id
 }
 
