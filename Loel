@@ -543,6 +543,7 @@ end
 
 --botao flutuante pc e mobile ]
 
+
 local function CreateFloatButton(name, onClick)
     local Players = game:GetService("Players")
     local UserInputService = game:GetService("UserInputService")
@@ -554,9 +555,15 @@ local function CreateFloatButton(name, onClick)
     gui.ResetOnSpawn = false
     gui.Parent = player:WaitForChild("PlayerGui")
 
+    -- índice automático (stack)
+    local index = #FloatButtonManager.Buttons + 1
+
     local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(0,52,0,52)
-    btn.Position = UDim2.new(1,-120,1,-160)
+    btn.Size = UDim2.new(0, 52, 0, 52)
+    btn.Position = UDim2.new(
+        1, FloatButtonManager.StartOffset.X,
+        1, FloatButtonManager.StartOffset.Y - ((index - 1) * FloatButtonManager.Spacing)
+    )
     btn.BackgroundColor3 = Color3.fromRGB(120,120,120)
     btn.Text = name
     btn.TextScaled = true
@@ -566,7 +573,7 @@ local function CreateFloatButton(name, onClick)
     Instance.new("UICorner", btn).CornerRadius = UDim.new(1,0)
     Instance.new("UIStroke", btn).Thickness = 2
 
-    -- asset de arraste (preservado)
+    -- asset de drag (NÃO REMOVIDO)
     local dragIcon = Instance.new("ImageButton")
     dragIcon.Size = UDim2.new(0,18,0,18)
     dragIcon.Position = UDim2.new(1,-20,0,2)
@@ -574,16 +581,16 @@ local function CreateFloatButton(name, onClick)
     dragIcon.Image = "rbxassetid://6031090999"
     dragIcon.Parent = btn
 
-    -- drag logic
+    -- lógica de drag
     local dragging = false
-    local startPos, btnStart
+    local startPos, startBtnPos
 
     dragIcon.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1
         or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             startPos = input.Position
-            btnStart = btn.AbsolutePosition
+            startBtnPos = btn.AbsolutePosition
         end
     end)
 
@@ -591,32 +598,49 @@ local function CreateFloatButton(name, onClick)
         if dragging then
             local delta = input.Position - startPos
             btn.Position = UDim2.fromOffset(
-                btnStart.X + delta.X,
-                btnStart.Y + delta.Y
+                startBtnPos.X + delta.X,
+                startBtnPos.Y + delta.Y
             )
         end
     end)
 
-    UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-        or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = false
-        end
+    UserInputService.InputEnded:Connect(function()
+        dragging = false
     end)
 
-    -- click (executa ação)
+    -- clique do botão
     btn.MouseButton1Click:Connect(function()
         if onClick then
             onClick()
         end
     end)
 
+    -- registrar no manager
+    local entry = {Gui = gui, Button = btn}
+    table.insert(FloatButtonManager.Buttons, entry)
+
     return {
         Destroy = function()
+            for i, v in ipairs(FloatButtonManager.Buttons) do
+                if v == entry then
+                    table.remove(FloatButtonManager.Buttons, i)
+                    break
+                end
+            end
+
             if gui then gui:Destroy() end
+
+            -- reorganizar os restantes
+            for i, v in ipairs(FloatButtonManager.Buttons) do
+                v.Button.Position = UDim2.new(
+                    1, FloatButtonManager.StartOffset.X,
+                    1, FloatButtonManager.StartOffset.Y - ((i - 1) * FloatButtonManager.Spacing)
+                )
+            end
         end
     }
 end
+
 
 
 
