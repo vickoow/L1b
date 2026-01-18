@@ -473,7 +473,6 @@ local tabContainerLine = new("Frame", {
         -- API returned per tab
         local tabAPI = {}
 
-        -- AddToggle (corrigido para PC + Mobile)
 function tabAPI:AddToggle(opt)
     opt = opt or {}
     local name = opt.Name or "Toggle"
@@ -497,7 +496,6 @@ function tabAPI:AddToggle(opt)
         TextXAlignment = Enum.TextXAlignment.Left
     })
 
-    -- toggle outer and inner
     local outer = new("Frame", {
         Parent = item,
         BackgroundColor3 = Theme.ToggleOuter,
@@ -527,7 +525,6 @@ function tabAPI:AddToggle(opt)
         if not ncb then task.spawn(callback, state) end
     end
 
-    -- Detectar toque ou clique (compatível com PC e Mobile)
     item.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1
         or input.UserInputType == Enum.UserInputType.Touch then
@@ -543,6 +540,85 @@ function tabAPI:AddToggle(opt)
         Flag = flag
     }
 end
+
+--botao flutuante pc e mobile ]
+
+local function CreateFloatButton(name, onClick)
+    local Players = game:GetService("Players")
+    local UserInputService = game:GetService("UserInputService")
+
+    local player = Players.LocalPlayer
+
+    local gui = Instance.new("ScreenGui")
+    gui.Name = name .. "_FloatButton"
+    gui.ResetOnSpawn = false
+    gui.Parent = player:WaitForChild("PlayerGui")
+
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0,52,0,52)
+    btn.Position = UDim2.new(1,-120,1,-160)
+    btn.BackgroundColor3 = Color3.fromRGB(120,120,120)
+    btn.Text = name
+    btn.TextScaled = true
+    btn.TextColor3 = Color3.new(1,1,1)
+    btn.Parent = gui
+
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(1,0)
+    Instance.new("UIStroke", btn).Thickness = 2
+
+    -- asset de arraste (preservado)
+    local dragIcon = Instance.new("ImageButton")
+    dragIcon.Size = UDim2.new(0,18,0,18)
+    dragIcon.Position = UDim2.new(1,-20,0,2)
+    dragIcon.BackgroundTransparency = 1
+    dragIcon.Image = "rbxassetid://6031090999"
+    dragIcon.Parent = btn
+
+    -- drag logic
+    local dragging = false
+    local startPos, btnStart
+
+    dragIcon.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            startPos = input.Position
+            btnStart = btn.AbsolutePosition
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging then
+            local delta = input.Position - startPos
+            btn.Position = UDim2.fromOffset(
+                btnStart.X + delta.X,
+                btnStart.Y + delta.Y
+            )
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1
+        or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+        end
+    end)
+
+    -- click (executa ação)
+    btn.MouseButton1Click:Connect(function()
+        if onClick then
+            onClick()
+        end
+    end)
+
+    return {
+        Destroy = function()
+            if gui then gui:Destroy() end
+        end
+    }
+end
+
+
 
 
         -- AddButton
