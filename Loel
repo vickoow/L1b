@@ -1490,10 +1490,42 @@ end
 
 
 
+function tabAPI:AddLabel(opt)
+    opt = opt or {}
+    local text = opt[1] or ""  -- pega o primeiro item da tabela
+    local item = new("Frame", {
+        Parent = tabContent,
+        BackgroundColor3 = Theme.ItemFrame,
+        Size = UDim2.new(1, -12, 0, 30),
+        BorderSizePixel = 0
+    })
+    makeCorner(item, 4)
+
+    local label = new("TextLabel", {
+        Parent = item,
+        Text = table.concat(opt, "\n"),  -- junta todas as linhas com quebra de linha
+        Font = Enum.Font.GothamBold,
+        TextSize = 12,
+        TextColor3 = Theme.ItemText,
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0,8,0,0),
+        Size = UDim2.new(1,-16,1,0),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        TextYAlignment = Enum.TextYAlignment.Top
+    })
+
+    return {
+        SetText = function(newText)
+            if typeof(newText) == "table" then
+                label.Text = table.concat(newText, "\n")
+            else
+                label.Text = tostring(newText)
+            end
+        end
+    }
+end
 
 
-
--- return tabAPI with only public methods mapped
 local public = {
 	AddToggle = tabAPI.AddToggle,
 	AddButton = tabAPI.AddButton,
@@ -1503,7 +1535,8 @@ local public = {
 	AddBind = tabAPI.AddKeybind,
 	AddSection = tabAPI.AddSection,
 	AddTextbox = tabAPI.AddTextbox,
-	AddColorpicker = tabAPI.AddColorpicker, -- ðŸ‘ˆ AQUI
+	AddColorpicker = tabAPI.AddColorpicker,
+	AddLabel = tabAPI.AddLabel,  -- <=== adicionado aqui
 	_internalId = id
 }
 
